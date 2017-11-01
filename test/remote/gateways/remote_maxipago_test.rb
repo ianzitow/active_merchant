@@ -128,4 +128,16 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     response = gateway.purchase(@amount, @credit_card, @options)
     assert_failure response
   end
+
+  def test_successful_add_consumer
+    response = @gateway.add_consumer(1, 'John', 'Smith')
+    assert_success response
+    assert_match /\A[-+]?\d+\z/, response.message
+  end
+
+  def test_failed_add_consumer
+    response = @gateway.add_consumer(1, 'John', '')
+    assert_failure response
+    assert_equal 'lastName is a required field.', response.message
+  end
 end
