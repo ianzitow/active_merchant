@@ -107,6 +107,13 @@ module ActiveMerchant #:nodoc:
         end
       end
 
+      def delete_card(consumer_id, token)
+        commit_api("delete-card-onfile") do |xml|
+          xml.customerId consumer_id
+          xml.token token
+        end
+      end
+
       def supports_scrubbing?
         true
       end

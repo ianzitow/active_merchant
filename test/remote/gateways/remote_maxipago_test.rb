@@ -190,4 +190,20 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     assert_failure response
     assert_equal response.params['error_message'], response.message
   end
+
+  def test_successful_delete_card
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+    token = @gateway.add_card(id, @credit_card, @options).message
+
+    response = @gateway.delete_card(id, token)
+    assert_success response
+  end
+
+  def test_failed_delete_card
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+
+    response = @gateway.delete_card(id, 'invalid_stoken')
+    assert_failure response
+    assert_equal response.params['error_message'], response.message
+  end
 end
