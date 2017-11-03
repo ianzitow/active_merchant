@@ -100,6 +100,13 @@ module ActiveMerchant #:nodoc:
         end
       end
 
+      def add_card(consumer_id, creditcard, options = {})
+        commit_api("add-card-onfile") do |xml|
+          xml.customerId consumer_id
+          add_new_creditcard(xml, creditcard, options)
+        end
+      end
+
       def supports_scrubbing?
         true
       end
@@ -279,6 +286,31 @@ module ActiveMerchant #:nodoc:
           xml.country address[:country] if address[:country]
           xml.phone address[:phone] if address[:phone]
         end
+      end
+
+      def add_new_creditcard(xml, creditcard, options)
+        address = options[:billing_address]
+        max_charge_amount = options[:max_charge_amount]
+        return unless address
+
+        year = creditcard.year.to_s
+        year = (year.length == 4 ? year : '20' + year)
+
+        month = creditcard.month.to_s
+        month = (month.length == 2 ? month : '0' + month)
+
+        xml.creditCardNumber creditcard.number
+        xml.expirationMonth month
+        xml.expirationYear year
+        xml.billingName creditcard.name
+        xml.billingAddress1 address[:address1] if address[:address1]
+        xml.billingAddress2 address[:address2] if address[:address2]
+        xml.billingCity address[:city] if address[:city]
+        xml.billingZip address[:zip] if address[:zip]
+        xml.billingCountry address[:country] if address[:country]
+        xml.billingPhone address[:phone] if address[:phone]
+        xml.billingEmail address[:email] if address[:email]
+        xml.onFileMaxChargeAmount max_charge_amount if max_charge_amount.present?
       end
 
       def add_order_id(xml, authorization)

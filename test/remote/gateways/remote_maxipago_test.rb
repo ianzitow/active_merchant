@@ -15,6 +15,7 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
       description: 'Store Purchase',
       installments: 3
     }
+    @options[:billing_address][:email] = 'jim_smith@email.com'
   end
 
   def test_successful_authorize
@@ -132,7 +133,7 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
   def test_successful_add_consumer
     response = @gateway.add_consumer(1, 'John', 'Smith')
     assert_success response
-    assert_match /\A[-+]?\d+\z/, response.message
+    assert_match response.params['customer_id'], response.message
   end
 
   def test_failed_add_consumer
@@ -171,5 +172,22 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     response = @gateway.delete_consumer(-3)
     assert_failure response
     assert_equal 'Customer Id is not a valid number.', response.message
+  end
+
+  def test_successful_add_card
+    id = @gateway.add_consumer(4, 'John', 'Smith').message
+    response = @gateway.add_card(id, @credit_card, @options)
+
+    assert_success response
+    assert_equal response.params['token'], response.message
+  end
+
+  def test_failed_add_card
+    options = @options
+    options[:billing_address][:email] = nil
+    response = @gateway.add_card(3234, @credit_card, @options)
+
+    assert_failure response
+    assert_equal response.params['error_message'], response.message
   end
 end
