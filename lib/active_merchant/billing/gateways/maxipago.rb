@@ -35,7 +35,7 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def tokenized_purchase(money, consumer_id, token, option = {})
+      def tokenized_purchase(money, consumer_id, token, options = {})
         commit_transaction(:sale) do |xml|
           add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
         end
@@ -44,6 +44,12 @@ module ActiveMerchant #:nodoc:
       def authorize(money, creditcard, options = {})
         commit_transaction(:auth) do |xml|
           add_auth_purchase(xml, money, creditcard, options)
+        end
+      end
+
+      def tokenized_authorize(money, consumer_id, token, options = {})
+        commit_transaction(:auth) do |xml|
+          add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
         end
       end
 
@@ -261,6 +267,7 @@ module ActiveMerchant #:nodoc:
 
       def add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
         fraudCheck = options[:fraud_check] || 'N'
+        cvv = options[:cvv]
 
         add_processor_id(xml)
         xml.fraudCheck(fraudCheck)
@@ -270,6 +277,7 @@ module ActiveMerchant #:nodoc:
             xml.onFile do
               xml.customerId consumer_id
               xml.token token
+              xml.cvvNumber cvv if cvv.present?
             end
           end
         end

@@ -222,4 +222,40 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     assert_failure response
     assert_equal "DECLINED", response.message
   end
+
+  def test_successful_tokenized_purchase_with_cvv
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+    token = @gateway.add_card(id, @credit_card, @options).message
+    response = @gateway.tokenized_purchase(@amount, id, token, cvv: '444')
+
+    assert_success response
+    assert_equal "CAPTURED", response.message
+  end
+
+  def test_successful_tokenized_authorize
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+    token = @gateway.add_card(id, @credit_card, @options).message
+    response = @gateway.tokenized_authorize(@amount, id, token, @options)
+
+    assert_success response
+    assert_equal "AUTHORIZED", response.message
+  end
+
+  def test_successful_tokenized_authorize_with_cvv
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+    token = @gateway.add_card(id, @credit_card, @options).message
+    response = @gateway.tokenized_authorize(@amount, id, token, cvv: '444')
+
+    assert_success response
+    assert_equal "AUTHORIZED", response.message
+  end
+
+  def test_failed_tokenized_authorize
+    id = @gateway.add_consumer(5, 'John', 'Smith').message
+    token = @gateway.add_card(id, @credit_card, @options).message
+    response = @gateway.tokenized_authorize(@invalid_amount, id, token, @options)
+
+    assert_failure response
+    assert_equal "DECLINED", response.message
+  end
 end
