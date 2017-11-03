@@ -83,6 +83,17 @@ module ActiveMerchant #:nodoc:
         end
       end
 
+      def update_consumer(consumer_id, external_id = nil, first_name = '', last_name = '')
+        # raise(ArgumentError, 'A gateway provider must be specified') if external_id.nil?
+
+        commit_api("update-consumer") do |xml|
+          xml.customerId consumer_id
+          xml.customerIdExt external_id if external_id.present?
+          xml.firstName first_name if first_name.present?
+          xml.lastName last_name if last_name.present?
+        end
+      end
+
       def supports_scrubbing?
         true
       end
@@ -105,8 +116,8 @@ module ActiveMerchant #:nodoc:
 
       def commit_api(action)
         request = build_api_request(action) { |doc| yield(doc) }
-        response = parse(ssl_post(api_url, request, 'Content-Type' => 'text/xml'))
-
+        # CHECAR sem parse
+        response = parse ssl_post(api_url, request, 'Content-Type' => 'text/xml')
         generate_response(response)
       end
 

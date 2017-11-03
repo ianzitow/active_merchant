@@ -140,4 +140,23 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     assert_failure response
     assert_equal 'lastName is a required field.', response.message
   end
+
+  def test_successful_update_consumer
+    response = @gateway.add_consumer(2, 'John', 'Smith')
+
+    id = response.message
+    response = @gateway.update_consumer(id, 2, 'Mario')
+
+    assert_success response
+  end
+
+  def test_failed_update_consumer
+    response = @gateway.add_consumer(2, 'John', 'Smith')
+
+    id = response.message
+    response = @gateway.update_consumer(id, nil, 'Mario')
+
+    assert_failure response
+    assert_equal 'Parser Error: URI=null Line=1: cvc-complex-type.2.4.a: Invalid content was found starting with element \'firstName\'. One of \'{customerIdExt}\' is expected.', response.message
+  end
 end
