@@ -35,6 +35,12 @@ module ActiveMerchant #:nodoc:
         end
       end
 
+      def tokenized_purchase(money, consumer_id, token, option = {})
+        commit_transaction(:sale) do |xml|
+          add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
+        end
+      end
+
       def authorize(money, creditcard, options = {})
         commit_transaction(:auth) do |xml|
           add_auth_purchase(xml, money, creditcard, options)
@@ -251,6 +257,26 @@ module ActiveMerchant #:nodoc:
           add_installments(xml, options)
         end
         add_billing_address(xml, creditcard, options)
+      end
+
+      def add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
+        fraudCheck = options[:fraud_check] || 'N'
+
+        add_processor_id(xml)
+        xml.fraudCheck(fraudCheck)
+        add_reference_num(xml, options)
+        xml.transactionDetail do
+          xml.payType do
+            xml.onFile do
+              xml.customerId consumer_id
+              xml.token token
+            end
+          end
+        end
+        xml.payment do
+          add_amount(xml, money, options)
+          add_installments(xml, options)
+        end
       end
 
       def add_reference_num(xml, options)
