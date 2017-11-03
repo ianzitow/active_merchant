@@ -94,6 +94,12 @@ module ActiveMerchant #:nodoc:
         end
       end
 
+      def delete_consumer(consumer_id)
+        commit_api("delete-consumer") do |xml|
+          xml.customerId consumer_id
+        end
+      end
+
       def supports_scrubbing?
         true
       end
@@ -116,7 +122,6 @@ module ActiveMerchant #:nodoc:
 
       def commit_api(action)
         request = build_api_request(action) { |doc| yield(doc) }
-        # CHECAR sem parse
         response = parse ssl_post(api_url, request, 'Content-Type' => 'text/xml')
         generate_response(response)
       end

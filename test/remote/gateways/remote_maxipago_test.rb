@@ -159,4 +159,17 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     assert_failure response
     assert_equal 'Parser Error: URI=null Line=1: cvc-complex-type.2.4.a: Invalid content was found starting with element \'firstName\'. One of \'{customerIdExt}\' is expected.', response.message
   end
+
+  def test_successful_delete_consumer
+    response = @gateway.add_consumer(3, 'John', 'Smith')
+    id = response.message
+    response = @gateway.delete_consumer(id)
+    assert_success response
+  end
+
+  def test_failed_delete_consumer
+    response = @gateway.delete_consumer(-3)
+    assert_failure response
+    assert_equal 'Customer Id is not a valid number.', response.message
+  end
 end
