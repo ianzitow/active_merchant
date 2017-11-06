@@ -174,41 +174,46 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
     assert_equal 'Customer Id is not a valid number.', response.message
   end
 
-  def test_successful_add_card
+  def test_successful_store
     id = @gateway.add_consumer(4, 'John', 'Smith').message
-    response = @gateway.add_card(id, @credit_card, @options)
+    @options[:consumer_id] = id
+    response = @gateway.store(@credit_card, @options)
 
     assert_success response
     assert_equal response.params['token'], response.message
   end
 
-  def test_failed_add_card
+  def test_failed_store
     options = @options
     options[:billing_address][:email] = nil
-    response = @gateway.add_card(3234, @credit_card, @options)
+    options[:consumer_id] = 4321
+    response = @gateway.store(@credit_card, @options)
 
     assert_failure response
     assert_equal response.params['error_message'], response.message
   end
 
-  def test_successful_delete_card
+  def test_successful_unstore
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.delete_card(id, token)
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    response = @gateway.unstore(token, consumer_id: id)
     assert_success response
   end
 
-  def test_failed_delete_card
+  def test_failed_unstore
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    response = @gateway.delete_card(id, 'invalid_stoken')
+    response = @gateway.unstore('invalid_stoken', consumer_id: id)
     assert_failure response
     assert_equal response.params['error_message'], response.message
   end
 
   def test_successful_tokenized_purchase
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_purchase(@amount, id, token, @options)
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    response = @gateway.purchase(@amount, nil, @options)
 
     assert_success response
     assert_equal "CAPTURED", response.message
@@ -216,8 +221,10 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
 
   def test_failed_tokenized_purchase
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_purchase(@invalid_amount, id, token, @options)
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    response = @gateway.purchase(@invalid_amount, nil, @options)
 
     assert_failure response
     assert_equal "DECLINED", response.message
@@ -225,8 +232,11 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
 
   def test_successful_tokenized_purchase_with_cvv
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_purchase(@amount, id, token, cvv: '444')
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    @options[:cvv] = '444'
+    response = @gateway.purchase(@amount, nil, @options)
 
     assert_success response
     assert_equal "CAPTURED", response.message
@@ -234,8 +244,10 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
 
   def test_successful_tokenized_authorize
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_authorize(@amount, id, token, @options)
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    response = @gateway.authorize(@amount, nil, @options)
 
     assert_success response
     assert_equal "AUTHORIZED", response.message
@@ -243,8 +255,11 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
 
   def test_successful_tokenized_authorize_with_cvv
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_authorize(@amount, id, token, cvv: '444')
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    @options[:cvv] = '444'
+    response = @gateway.authorize(@amount, nil, @options)
 
     assert_success response
     assert_equal "AUTHORIZED", response.message
@@ -252,8 +267,10 @@ class RemoteMaxipagoTest < Test::Unit::TestCase
 
   def test_failed_tokenized_authorize
     id = @gateway.add_consumer(5, 'John', 'Smith').message
-    token = @gateway.add_card(id, @credit_card, @options).message
-    response = @gateway.tokenized_authorize(@invalid_amount, id, token, @options)
+    @options[:consumer_id] = id
+    token = @gateway.store(@credit_card, @options).message
+    @options[:token] = token
+    response = @gateway.authorize(@invalid_amount, nil, @options)
 
     assert_failure response
     assert_equal "DECLINED", response.message

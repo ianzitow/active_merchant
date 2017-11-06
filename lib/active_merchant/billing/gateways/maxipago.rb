@@ -29,27 +29,23 @@ module ActiveMerchant #:nodoc:
         super
       end
 
-      def purchase(money, creditcard, options = {})
+      def purchase(money, creditcard = nil, options = {})
         commit_transaction(:sale) do |xml|
-          add_auth_purchase(xml, money, creditcard, options)
+          if options[:consumer_id] && options[:token]
+            add_auth_tokenized_purchase(xml, money, options)
+          else
+            add_auth_purchase(xml, money, creditcard, options)
+          end
         end
       end
 
-      def tokenized_purchase(money, consumer_id, token, options = {})
-        commit_transaction(:sale) do |xml|
-          add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
-        end
-      end
-
-      def authorize(money, creditcard, options = {})
+      def authorize(money, creditcard = nil, options = {})
         commit_transaction(:auth) do |xml|
-          add_auth_purchase(xml, money, creditcard, options)
-        end
-      end
-
-      def tokenized_authorize(money, consumer_id, token, options = {})
-        commit_transaction(:auth) do |xml|
-          add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
+          if options[:consumer_id] && options[:token]
+            add_auth_tokenized_purchase(xml, money, options)
+          else
+            add_auth_purchase(xml, money, creditcard, options)
+          end
         end
       end
 
@@ -96,8 +92,6 @@ module ActiveMerchant #:nodoc:
       end
 
       def update_consumer(consumer_id, external_id = nil, first_name = '', last_name = '')
-        # raise(ArgumentError, 'A gateway provider must be specified') if external_id.nil?
-
         commit_api("update-consumer") do |xml|
           xml.customerId consumer_id
           xml.customerIdExt external_id if external_id.present?
@@ -112,16 +106,16 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def add_card(consumer_id, creditcard, options = {})
+      def store(creditcard, options = {})
         commit_api("add-card-onfile") do |xml|
-          xml.customerId consumer_id
+          xml.customerId options[:consumer_id] if options[:consumer_id]
           add_new_creditcard(xml, creditcard, options)
         end
       end
 
-      def delete_card(consumer_id, token)
+      def unstore(token, options = {})
         commit_api("delete-card-onfile") do |xml|
-          xml.customerId consumer_id
+          xml.customerId options[:consumer_id] if options[:consumer_id]
           xml.token token
         end
       end
@@ -265,9 +259,11 @@ module ActiveMerchant #:nodoc:
         add_billing_address(xml, creditcard, options)
       end
 
-      def add_auth_tokenized_purchase(xml, money, consumer_id, token, options)
+      def add_auth_tokenized_purchase(xml, money, options)
         fraudCheck = options[:fraud_check] || 'N'
         cvv = options[:cvv]
+        token = options[:token]
+        consumer_id = options[:consumer_id]
 
         add_processor_id(xml)
         xml.fraudCheck(fraudCheck)
