@@ -237,10 +237,10 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_auth_purchase(xml, money, creditcard, options)
-        fraudCheck = options[:fraud_check] || 'N'
+        fraudCheck = options[:fraud_check]
 
         add_processor_id(xml)
-        xml.fraudCheck(fraudCheck)
+        xml.fraudCheck(fraudCheck) if fraudCheck.present?
         add_reference_num(xml, options)
         xml.transactionDetail do
           xml.payType do
@@ -261,13 +261,13 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_auth_tokenized_purchase(xml, money, options)
-        fraudCheck = options[:fraud_check] || 'N'
+        fraudCheck = options[:fraud_check]
         cvv = options[:cvv]
         token = options[:token]
         consumer_id = options[:consumer_id]
 
         add_processor_id(xml)
-        xml.fraudCheck(fraudCheck)
+        xml.fraudCheck(fraudCheck) if fraudCheck.present?
         add_reference_num(xml, options)
         xml.transactionDetail do
           xml.payType do
