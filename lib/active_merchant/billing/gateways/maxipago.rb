@@ -257,6 +257,7 @@ module ActiveMerchant #:nodoc:
           add_installments(xml, options)
         end
         add_billing_address(xml, creditcard, options)
+        add_shipping_address(xml, creditcard, options)
       end
 
       def add_auth_tokenized_purchase(xml, money, options)
@@ -313,7 +314,19 @@ module ActiveMerchant #:nodoc:
         address = options[:billing_address]
         return unless address
 
-        xml.billing do
+        add_address(:billing, xml, creditcard, address)
+      end
+
+
+      def add_shipping_address(xml, creditcard, options)
+        address = options[:shipping_address]
+        return unless address
+
+        add_address(:shipping, xml, creditcard, address)
+      end
+
+      def add_address(type, xml, creditcard, address)
+        xml.send("#{type}!") do
           xml.name creditcard.name
           xml.address address[:address1] if address[:address1]
           xml.address2 address[:address2] if address[:address2]
@@ -322,6 +335,7 @@ module ActiveMerchant #:nodoc:
           xml.postalcode address[:zip] if address[:zip]
           xml.country address[:country] if address[:country]
           xml.phone address[:phone] if address[:phone]
+          xml.email address[:email] if address[:email]
         end
       end
 
@@ -343,6 +357,7 @@ module ActiveMerchant #:nodoc:
         xml.billingAddress1 address[:address1] if address[:address1]
         xml.billingAddress2 address[:address2] if address[:address2]
         xml.billingCity address[:city] if address[:city]
+        xml.billingState address[:state] if address[:state]
         xml.billingZip address[:zip] if address[:zip]
         xml.billingCountry address[:country] if address[:country]
         xml.billingPhone address[:phone] if address[:phone]
