@@ -53,8 +53,8 @@ module ActiveMerchant #:nodoc:
         commit_transaction(:capture) do |xml|
           add_order_id(xml, authorization)
           add_reference_num(xml, options)
-          add_company_name(xml, options)
           xml.payment do
+            add_soft_descriptor(xml, options)
             add_amount(xml, money, options)
           end
         end
@@ -71,8 +71,8 @@ module ActiveMerchant #:nodoc:
         commit_transaction(:return) do |xml|
           add_order_id(xml, authorization)
           add_reference_num(xml, options)
-          add_company_name(xml, options)
           xml.payment do
+            add_soft_descriptor(xml, options)
             add_amount(xml, money, options)
           end
         end
@@ -244,7 +244,6 @@ module ActiveMerchant #:nodoc:
         add_processor_id(xml)
         xml.fraudCheck(fraudCheck) if fraudCheck.present?
         add_reference_num(xml, options)
-        add_company_name(xml, options)
         xml.transactionDetail do
           xml.payType do
             xml.creditCard do
@@ -256,6 +255,7 @@ module ActiveMerchant #:nodoc:
           end
         end
         xml.payment do
+          add_soft_descriptor(xml, options)
           add_amount(xml, money, options)
           add_installments(xml, options)
         end
@@ -272,7 +272,6 @@ module ActiveMerchant #:nodoc:
         add_processor_id(xml)
         xml.fraudCheck(fraudCheck) if fraudCheck.present?
         add_reference_num(xml, options)
-        add_company_name(xml, options)
         xml.transactionDetail do
           xml.payType do
             xml.onFile do
@@ -283,6 +282,7 @@ module ActiveMerchant #:nodoc:
           end
         end
         xml.payment do
+          add_soft_descriptor(xml, options)
           add_amount(xml, money, options)
           add_installments(xml, options)
         end
@@ -293,7 +293,11 @@ module ActiveMerchant #:nodoc:
       end
 
       def add_company_name(xml, options)
-        xml.companyName(options[:company_name]) if options[:company_name].present?
+        xml.companyName(options[:company_name]) if options[:company_name]
+      end
+
+      def add_soft_descriptor(xml, options)
+        xml.softDescriptor(options[:soft_descriptor]) if options[:soft_descriptor].present?
       end
 
       def add_amount(xml, money, options)
