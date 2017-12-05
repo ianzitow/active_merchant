@@ -259,8 +259,8 @@ module ActiveMerchant #:nodoc:
           add_amount(xml, money, options)
           add_installments(xml, options)
         end
-        add_billing_address(xml, creditcard, options)
-        add_shipping_address(xml, creditcard, options)
+        add_billing_address(xml, options)
+        add_shipping_address(xml, options)
       end
 
       def add_auth_tokenized_purchase(xml, money, options)
@@ -286,14 +286,12 @@ module ActiveMerchant #:nodoc:
           add_amount(xml, money, options)
           add_installments(xml, options)
         end
+        add_billing_address(xml, options)
+        add_shipping_address(xml, options)
       end
 
       def add_reference_num(xml, options)
         xml.referenceNum(options[:order_id] || generate_unique_id)
-      end
-
-      def add_company_name(xml, options)
-        xml.companyName(options[:company_name]) if options[:company_name]
       end
 
       def add_soft_descriptor(xml, options)
@@ -322,24 +320,24 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def add_billing_address(xml, creditcard, options)
+      def add_billing_address(xml, options)
         address = options[:billing_address]
         return unless address
 
-        add_address(:billing, xml, creditcard, address)
+        add_address(:billing, xml, address)
       end
 
 
-      def add_shipping_address(xml, creditcard, options)
+      def add_shipping_address(xml, options)
         address = options[:shipping_address]
         return unless address
 
-        add_address(:shipping, xml, creditcard, address)
+        add_address(:shipping, xml, address)
       end
 
-      def add_address(type, xml, creditcard, address)
+      def add_address(type, xml, address)
         xml.send("#{type}!") do
-          xml.name creditcard.name
+          xml.name address[:name] if address[:name]
           xml.address address[:address1] if address[:address1]
           xml.address2 address[:address2] if address[:address2]
           xml.city address[:city] if address[:city]
@@ -348,6 +346,7 @@ module ActiveMerchant #:nodoc:
           xml.country address[:country] if address[:country]
           xml.phone address[:phone] if address[:phone]
           xml.email address[:email] if address[:email]
+          xml.companyName address[:company_name] if address[:company_name]
         end
       end
 
