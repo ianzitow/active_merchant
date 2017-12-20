@@ -261,6 +261,7 @@ module ActiveMerchant #:nodoc:
         end
         add_billing_address(xml, options)
         add_shipping_address(xml, options)
+        add_fraud_details(xml, options)
       end
 
       def add_auth_tokenized_purchase(xml, money, options)
@@ -288,6 +289,7 @@ module ActiveMerchant #:nodoc:
         end
         add_billing_address(xml, options)
         add_shipping_address(xml, options)
+        add_fraud_details(xml, options)
       end
 
       def add_reference_num(xml, options)
@@ -337,16 +339,68 @@ module ActiveMerchant #:nodoc:
 
       def add_address(type, xml, address)
         xml.send("#{type}!") do
+          xml.id address[:id] if address[:id]
           xml.name address[:name] if address[:name]
           xml.address address[:address1] if address[:address1]
           xml.address2 address[:address2] if address[:address2]
+          xml.district address[:district] if address[:district]
           xml.city address[:city] if address[:city]
           xml.state address[:state] if address[:state]
           xml.postalcode address[:zip] if address[:zip]
           xml.country address[:country] if address[:country]
           xml.phone address[:phone] if address[:phone]
           xml.email address[:email] if address[:email]
+          xml.type address[:type] if address[:type]
+          xml.gender address[:gender] if address[:gender]
+          xml.birthDate address[:birth_date] if address[:birth_date]
           xml.companyName address[:company_name] if address[:company_name]
+          add_phones(xml, address)
+          add_documents(xml, address)
+        end
+
+        byebug
+      end
+
+      def add_documents(xml, address)
+        documents = address[:documents]
+        return unless documents
+
+        xml.documents do
+          documents.each do |document|
+            xml.document do
+              xml.documentType document[:type] if document[:type]
+              xml.documentValue document[:value] if document[:value]
+            end
+          end
+        end
+      end
+
+      def add_phones(xml, address)
+        phones = address[:phones]
+        puts phones
+        return unless phones
+
+        xml.phones do
+          phones.each do |phone|
+            xml.phone do
+              xml.phoneType phone[:type] if phone[:type]
+              xml.phoneAreaCode phone[:area_code] if phone[:area_code]
+              xml.phoneNumber phone[:number] if phone[:number]
+            end
+          end
+        end
+      end
+
+      def add_fraud_details(xml, options)
+        fraud_details = options[:fraud_details]
+        return unless fraud_details
+
+        xml.fraudDetails do
+          xml.fraudProcessorID fraud_details[:fraud_processor_id] if fraud_details[:fraud_processor_id]
+          xml.captureOnLowRisk fraud_details[:capture_on_low_risk] if fraud_details[:capture_on_low_risk]
+          xml.voidOnHighRisk fraud_details[:void_on_high_risk] if fraud_details[:void_on_high_risk]
+          xml.fraudToken fraud_details[:fraud_token] if fraud_details[:fraud_token]
+          xml.websiteId fraud_details[:website_id] if fraud_details[:website_id]
         end
       end
 
