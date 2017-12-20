@@ -357,8 +357,6 @@ module ActiveMerchant #:nodoc:
           add_phones(xml, address)
           add_documents(xml, address)
         end
-
-        byebug
       end
 
       def add_documents(xml, address)
@@ -377,7 +375,6 @@ module ActiveMerchant #:nodoc:
 
       def add_phones(xml, address)
         phones = address[:phones]
-        puts phones
         return unless phones
 
         xml.phones do
@@ -401,8 +398,70 @@ module ActiveMerchant #:nodoc:
           xml.voidOnHighRisk fraud_details[:void_on_high_risk] if fraud_details[:void_on_high_risk]
           xml.fraudToken fraud_details[:fraud_token] if fraud_details[:fraud_token]
           xml.websiteId fraud_details[:website_id] if fraud_details[:website_id]
+          add_tickets(xml, fraud_details)
         end
       end
+
+      def add_tickets(xml, fraud_details)
+        tickets = fraud_details[:tickets]
+        return unless tickets
+
+        xml.tickets do
+          tickets.each do |ticket_event|
+            xml.ticket_event do
+              xml.convenienceFee ticket_event[:convenience_fee] if ticket_event[:convenience_fee]
+              xml.quantityFull ticket_event[:quantity_full] if ticket_event[:quantity_full]
+              xml.quantityHalf ticket_event[:quantity_half] if ticket_event[:quantity_half]
+              add_event(xml, ticket_event)
+              add_people(xml, ticket_event)
+              add_categories(xml, ticket_event)
+            end
+          end
+        end
+      end
+
+      def add_event(xml, ticket_event)
+        event = ticket_event[:event]
+        return unless event
+
+        xml.event do
+          xml.id event[:id] if event[:id]
+          xml.name event[:name] if event[:name]
+          xml.local event[:local] if event[:local]
+          xml.date event[:date] if event[:date]
+          xml.quantityTicketSale event[:quantity_ticket_sale] if event[:quantity_ticket_sale]
+          xml.quantityEventHouse event[:quantity_event_house] if event[:quantity_event_house]
+        end
+      end
+
+      def add_people(xml, ticket_event)
+        people = ticket_event[:people]
+        return unless people
+
+        xml.people do
+          people.each do |person|
+            xml.person do
+              xml.name person[:name] if person[:name]
+            end
+          end
+        end
+      end
+
+      def add_categories(xml, ticket_event)
+        categories = ticket_event[:categories]
+        return unless categories
+
+        xml.categories do
+          categories.each do |category|
+            xml.category do
+              xml.name category[:name] if category[:name]
+              xml.quantity category[:quantity] if category[:quantity]
+              xml.unitAmount category[:unit_amount] if category[:unit_amount]
+            end
+          end
+        end
+      end
+
 
       def add_new_creditcard(xml, creditcard, options)
         address = options[:billing_address]
