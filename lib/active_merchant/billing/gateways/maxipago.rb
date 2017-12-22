@@ -262,7 +262,6 @@ module ActiveMerchant #:nodoc:
         add_billing_address(xml, options)
         add_shipping_address(xml, options)
         add_fraud_details(xml, options)
-        add_tickets(xml, options)
         add_item_list(xml, options)
       end
 
@@ -292,7 +291,6 @@ module ActiveMerchant #:nodoc:
         add_billing_address(xml, options)
         add_shipping_address(xml, options)
         add_fraud_details(xml, options)
-        add_tickets(xml, options)
         add_item_list(xml, options)
       end
 
@@ -402,11 +400,12 @@ module ActiveMerchant #:nodoc:
           xml.voidOnHighRisk fraud_details[:void_on_high_risk] if fraud_details[:void_on_high_risk]
           xml.fraudToken fraud_details[:fraud_token] if fraud_details[:fraud_token]
           xml.websiteId fraud_details[:website_id] if fraud_details[:website_id]
+          add_tickets(xml, fraud_details)
         end
       end
 
-      def add_tickets(xml, options)
-        tickets = options[:tickets]
+      def add_tickets(xml, fraud_details)
+        tickets = fraud_details[:tickets]
         return unless tickets
 
         xml.tickets do
