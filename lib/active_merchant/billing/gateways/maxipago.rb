@@ -263,6 +263,7 @@ module ActiveMerchant #:nodoc:
         add_shipping_address(xml, options)
         add_fraud_details(xml, options)
         add_tickets(xml, options)
+        add_item_list(xml, options)
       end
 
       def add_auth_tokenized_purchase(xml, money, options)
@@ -292,6 +293,7 @@ module ActiveMerchant #:nodoc:
         add_shipping_address(xml, options)
         add_fraud_details(xml, options)
         add_tickets(xml, options)
+        add_item_list(xml, options)
       end
 
       def add_reference_num(xml, options)
@@ -416,6 +418,24 @@ module ActiveMerchant #:nodoc:
               add_event(xml, ticket_event)
               add_people(xml, ticket_event)
               add_categories(xml, ticket_event)
+            end
+          end
+        end
+      end
+
+      def add_item_list(xml, options)
+        item_list = options[:item_list]
+        return unless item_list
+
+        xml.itemList do
+          item_list.each do |item|
+            xml.item do
+              xml.itemIndex item[:item_index] if item[:item_index]
+              xml.itemProductCode item[:item_product_code] if item[:item_product_code]
+              xml.itemDescription item[:item_description] if item[:item_description]
+              xml.itemQuantity item[:item_quantity] if item[:item_quantity]
+              xml.itemTotalAmount item[:item_total_amount] if item[:item_total_amount]
+              xml.itemUnitCost item[:item_unit_cost] if item[:item_unit_cost]
             end
           end
         end
