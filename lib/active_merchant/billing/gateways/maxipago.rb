@@ -85,11 +85,21 @@ module ActiveMerchant #:nodoc:
         end
       end
 
-      def add_consumer(external_id, first_name, last_name)
+      def add_consumer(external_id, first_name, last_name, address1, address2, city, state, zip, phone, email, dob, ssn, sex)
         commit_api("add-consumer") do |xml|
           xml.customerIdExt external_id
           xml.firstName first_name
           xml.lastName last_name
+          xml.address1 address1
+          xml.address2 address2
+          xml.city city
+          xml.state state
+          xml.zip zip
+          xml.phone phone
+          xml.email email
+          xml.dob dob
+          xml.ssn ssn
+          xml.sex sex
         end
       end
 
